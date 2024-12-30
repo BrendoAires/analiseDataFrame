@@ -1,10 +1,10 @@
 import streamlit as st
 import pandas as pd
 import cohere
-
 from dotenv import load_dotenv
 import os
 
+# Carregar a chave da API do Cohere do arquivo .env
 load_dotenv()  # Carrega o arquivo .env
 api_key = os.getenv("COHERE_API_KEY")
 
@@ -16,7 +16,7 @@ with (st.sidebar):
     uploaded_file = st.file_uploader("Escolha um arquivo (CSV ou Excel)", type=["csv", "xlsx"])
 
     cohere_api_key = api_key
-    #st.sidebar.text_input("Insira sua chave da API Cohere", type="password")
+
     # Título da aplicação
     st.title("Chatbot")
 
@@ -45,7 +45,7 @@ with (st.sidebar):
             [f"{msg['role']}: {msg['content']}" for msg in st.session_state.messages]
         )
 
-        # Enviar mensagens para o Cohere
+        # Enviar mensagens para o Cohere utilizando o método generate
         response = co.generate(
             model="command",  # Substitua por "command-r-plus" ou outro modelo adequado
             prompt=conversation,
@@ -56,10 +56,11 @@ with (st.sidebar):
         # Processar resposta e exibir
         assistant_response = response.generations[0].text.strip()
 
-
+        # Adicionar resposta do assistente à conversa
         st.session_state.messages.append({"role": "assistant", "content": assistant_response})
         st.chat_message("assistant").write(assistant_response)
 
+# Se um arquivo foi carregado
 if uploaded_file is not None:
     # Exibir o nome do arquivo carregado
     st.write(f"**Arquivo carregado:** {uploaded_file.name}")
@@ -80,7 +81,7 @@ if uploaded_file is not None:
         st.write(df.describe())
 
         # Inicializar cliente Cohere
-        co = cohere.ClientV2(api_key)
+        co = cohere.Client(api_key)
 
         # Gerar uma amostra dos dados e estatísticas básicas
         sample_data = df.head(10).to_string(index=False)
@@ -101,18 +102,17 @@ if uploaded_file is not None:
         Queremos insights relacionados a tendências, discrepâncias ou outras observações interessantes nos dados. Por favor, forneça recomendações ou análises detalhadas.
         """
 
-        # Enviar para o modelo Cohere
-        response = co.chat_stream(
-            model="command-r-plus-08-2024",
-            messages=[{"role": "user", "content": prompt}],
+        # Enviar para o modelo Cohere utilizando o método generate
+        response = co.generate(
+            model="command-r-plus-08-2024",  # Escolha o modelo adequado
+            prompt=prompt,
+            max_tokens=300,
+            temperature=0.7
         )
 
         # Exibir os insights gerados
         st.subheader("Insights Gerados pelo Modelo Cohere")
-        insights = ""
-        for event in response:
-            if event.type == "content-delta":
-                insights += event.delta.message.content.text
+        insights = response.generations[0].text.strip()
 
         st.write(insights)
 
