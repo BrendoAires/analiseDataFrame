@@ -10,7 +10,7 @@ api_key = os.getenv("COHERE_API_KEY")
 
 # Título do aplicativo
 st.title("Análise de Dados com Cohere e Streamlit")
-  
+
 # Sidebar para upload de arquivos
 with (st.sidebar):
     uploaded_file = st.file_uploader("Escolha um arquivo (CSV ou Excel)", type=["csv", "xlsx"])
